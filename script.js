@@ -432,6 +432,13 @@ function closeProductDetail() {
     document.getElementById('productDetailModal').classList.remove('open');
 }
 
+// ===== 이메일 유효성 검사 함수 =====
+function isValidEmail(email) {
+    // 올바른 이메일 형식 (예: user@example.com) 검증 정규식
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
 // ===== 인증 처리 =====
 function handleLogin(event) {
     event.preventDefault();
@@ -443,21 +450,32 @@ function handleLogin(event) {
         return;
     }
 
+    // 1. 이메일 형식 검증 (@dsfeafds 같은 형식 차단)
+    if (!isValidEmail(email)) {
+        alert('올바른 이메일 형식이 아닙니다. (예: user@example.com)');
+        return;
+    }
+
     if (password.length < 6) {
         alert('비밀번호는 최소 6자 이상이어야 합니다.');
         return;
     }
 
-    // localStorage에서 가입된 사용자 목록 확인
+    // 2. localStorage에서 가입된 회원 목록 조회
     const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const existingUser = users.find(u => u.email === email && u.password === password);
 
-    // 가입된 유저가 있으면 그 이름, 없으면 이메일 ID 사용
-    const displayName = existingUser ? existingUser.name : email.split('@')[0];
+    // 3. 이메일과 비밀번호가 일치하는 계정 검색
+    const matchedUser = users.find(u => u.email === email && u.password === password);
 
-    currentUser = displayName;
+    if (!matchedUser) {
+        alert('가입되지 않은 이메일이거나 비밀번호가 올바르지 않습니다.');
+        return;
+    }
+
+    // 4. 로그인 성공 처리
+    currentUser = matchedUser.name;
     localStorage.setItem('currentUser', currentUser);
-    
+
     updateUserDisplay();
     closeLoginModal();
     alert(`${currentUser}님, 환영합니다!`);
@@ -476,6 +494,12 @@ function handleSignup(event) {
         return;
     }
 
+    // 1. 이메일 형식 검증
+    if (!isValidEmail(email)) {
+        alert('올바른 이메일 형식을 입력해 주세요. (예: user@example.com)');
+        return;
+    }
+
     if (password.length < 6) {
         alert('비밀번호는 최소 6자 이상이어야 합니다.');
         return;
@@ -486,19 +510,20 @@ function handleSignup(event) {
         return;
     }
 
-    // 회원가입 정보 localStorage에 저장
+    // 2. 이미 가입된 이메일 중복 체크
     const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
     if (users.some(u => u.email === email)) {
         alert('이미 가입된 이메일입니다.');
         return;
     }
 
+    // 3. 회원 저장 및 로그인 처리
     users.push({ name, email, password });
     localStorage.setItem('registeredUsers', JSON.stringify(users));
 
     currentUser = name;
     localStorage.setItem('currentUser', currentUser);
-    
+
     updateUserDisplay();
     closeSignupModal();
     alert('회원가입이 완료되었습니다!');
