@@ -96,6 +96,7 @@ let currentUser = null;
 let currentLocation = '위치 설정';
 let selectedProduct = null;
 let likedProducts = new Set();
+let currentBgMode = 'default';
 
 // ===== DOM 요소 =====
 const productsContainer = document.getElementById('productsContainer');
@@ -159,9 +160,9 @@ function renderProducts(items = productData) {
         const card = document.createElement('article');
         card.className = 'product-card';
         card.style.animation = `fadeIn 0.4s ease ${index * 0.05}s both`;
-        
+
         const isLiked = likedProducts.has(product.id);
-        
+
         card.innerHTML = `
             <div class="product-image">
                 <img src="${product.image}" alt="${product.title}" loading="lazy">
@@ -185,13 +186,13 @@ function renderProducts(items = productData) {
                 </div>
             </div>
         `;
-        
+
         card.addEventListener('click', (e) => {
             if (!e.target.closest('button')) {
                 openProductDetail(product.id);
             }
         });
-        
+
         productsContainer.appendChild(card);
     });
 }
@@ -204,11 +205,11 @@ function searchProducts() {
     const status = statusFilter.value;
 
     const filtered = productData.filter((product) => {
-        const matchesKeyword = !keyword || 
-            product.title.toLowerCase().includes(keyword) || 
-            product.description.toLowerCase().includes(keyword) || 
+        const matchesKeyword = !keyword ||
+            product.title.toLowerCase().includes(keyword) ||
+            product.description.toLowerCase().includes(keyword) ||
             getCategoryLabel(product.category).includes(keyword);
-        
+
         const matchesCategory = !category || product.category === category;
 
         let matchesPrice = true;
@@ -233,13 +234,13 @@ function filterProducts() {
 function setTheme(themeName) {
     selectedTheme = themeName;
     localStorage.setItem('selectedTheme', themeName);
-    
+
     document.querySelectorAll('.theme-btn').forEach((button) => {
         button.classList.toggle('active', button.dataset.theme === themeName);
     });
 
     const root = document.documentElement;
-    
+
     if (themeName === 'minimal') {
         root.style.setProperty('--bg-color', '#f9f9f9');
         root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #f7f7f7 0%, #ebe8e4 100%)');
@@ -259,20 +260,46 @@ function setTheme(themeName) {
         root.style.setProperty('--primary-dark', '#e86800');
         root.style.setProperty('--accent', '#ffb15e');
     }
+
+    // 배경 모드 다시 적용
+    if (currentBgMode === 'default') {
+        applyDefaultBg();
+    } else if (currentBgMode === 'gradient') {
+        applyGradientBg();
+    }
+}
+
+function applyDefaultBg() {
+    document.body.classList.remove('with-image');
+    document.body.style.background = 'var(--bg-gradient)';
+    document.body.style.backgroundImage = 'none';
+    currentBgMode = 'default';
+}
+
+function applyGradientBg() {
+    document.body.classList.remove('with-image');
+    const root = document.documentElement;
+    root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #f6d365 0%, #fda085 50%, #f6d365 100%)');
+    document.body.style.background = 'var(--bg-gradient)';
+    document.body.style.backgroundImage = 'none';
+    currentBgMode = 'gradient';
 }
 
 function setBgColor(mode) {
-    document.body.classList.remove('with-image');
-    const root = document.documentElement;
+    updateBgButtons();
 
     if (mode === 'gradient') {
-        root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #f6d365 0%, #fda085 50%, #f6d365 100%)');
-        document.body.style.background = 'var(--bg-gradient)';
+        applyGradientBg();
+        document.getElementById('bgGradientBtn').classList.add('active');
+        updateBgInfo('그라데이션');
     } else {
-        document.body.style.background = 'var(--bg-gradient)';
+        applyDefaultBg();
+        document.getElementById('bgDefaultBtn').classList.add('active');
+        updateBgInfo('기본 색상');
     }
-    
+
     localStorage.setItem('bgMode', mode);
+    localStorage.removeItem('bgImage');
 }
 
 function uploadBgImage(event) {
@@ -283,9 +310,33 @@ function uploadBgImage(event) {
     reader.onload = function (e) {
         document.body.classList.add('with-image');
         document.documentElement.style.setProperty('--bg-image', `url('${e.target.result}')`);
+        document.body.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.55), rgba(255,255,255,0.6)), url('${e.target.result}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundRepeat = 'no-repeat';
+        document.body.style.backgroundAttachment = 'fixed';
+
+        updateBgButtons();
+        updateBgInfo('사진');
+        currentBgMode = 'image';
+
         localStorage.setItem('bgImage', e.target.result);
+        localStorage.removeItem('bgMode');
     };
+
     reader.readAsDataURL(file);
+}
+
+function updateBgButtons() {
+    document.getElementById('bgDefaultBtn').classList.remove('active');
+    document.getElementById('bgGradientBtn').classList.remove('active');
+}
+
+function updateBgInfo(text) {
+    const info = document.getElementById('bgImageInfo');
+    if (info) {
+        info.textContent = '현재 배경: ' + text;
+    }
 }
 
 // ===== 모달 제어 =====
@@ -355,7 +406,7 @@ function openProductDetail(productId) {
 
     selectedProduct = product;
     const isLiked = likedProducts.has(product.id);
-    
+
     document.getElementById('detailImage').src = product.image;
     document.getElementById('detailTitle').textContent = product.title;
     document.getElementById('detailSeller').textContent = product.seller;
@@ -363,7 +414,7 @@ function openProductDetail(productId) {
     document.getElementById('detailPrice').textContent = formatPrice(product.price);
     document.getElementById('detailStatus').textContent = getStatusLabel(product.status);
     document.getElementById('detailDescription').textContent = product.description;
-    
+
     const likeBtn = document.getElementById('likeBtn');
     likeBtn.textContent = isLiked ? '❤️ 찜 완료' : '🤍 찜하기';
     likeBtn.onclick = () => toggleLike(product.id);
@@ -554,7 +605,7 @@ function toggleLike(productId) {
     }
 
     renderProducts();
-    
+
     if (selectedProduct && selectedProduct.id === productId) {
         const isLiked = likedProducts.has(productId);
         const likeBtn = document.getElementById('likeBtn');
@@ -588,10 +639,27 @@ function loadSavedSettings() {
         currentLocationEl.textContent = savedLocation;
     }
 
+    // 배경 이미지 복원
     const savedBgImage = localStorage.getItem('bgImage');
     if (savedBgImage) {
         document.body.classList.add('with-image');
-        document.documentElement.style.setProperty('--bg-image', `url('${savedBgImage}')`);
+        document.body.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.55), rgba(255,255,255,0.6)), url('${savedBgImage}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundRepeat = 'no-repeat';
+        document.body.style.backgroundAttachment = 'fixed';
+        currentBgMode = 'image';
+        updateBgInfo('사진');
+    } else {
+        // 배경 모드 복원
+        const savedBgMode = localStorage.getItem('bgMode');
+        if (savedBgMode === 'gradient') {
+            applyGradientBg();
+            updateBgInfo('그라데이션');
+        } else {
+            applyDefaultBg();
+            updateBgInfo('기본 색상');
+        }
     }
 }
 
