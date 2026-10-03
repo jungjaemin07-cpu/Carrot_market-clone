@@ -685,7 +685,6 @@ window.addEventListener('click', (event) => {
 });
 
 // ===== 로컬스토리지에서 복원 =====
-// ===== 로컬스토리지에서 복원 =====
 function loadSavedSettings() {
     // 1. 저장된 사용자 복원
     const savedUser = localStorage.getItem('currentUser');
@@ -751,3 +750,23 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedSettings();
     renderProducts();
 });
+
+// ===== 물품 사진 선택 시 파일명 표시 로직 =====
+const productImageInput = document.getElementById('productImage');
+const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+if (productImageInput && fileNameDisplay) {
+    productImageInput.addEventListener('change', function (e) {
+        if (e.target.files && e.target.files.length > 0) {
+            // 선택한 파일 이름 표시
+            fileNameDisplay.textContent = e.target.files[0].name;
+            fileNameDisplay.style.color = '#333333';
+            fileNameDisplay.style.fontWeight = '500';
+        } else {
+            // 선택 취소 시 기본 문구로 복원
+            fileNameDisplay.textContent = '선택된 사진 없음';
+            fileNameDisplay.style.color = '#666666';
+            fileNameDisplay.style.fontWeight = 'normal';
+        }
+    });
+}
