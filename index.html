@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>당근마켓 클론 - 중고 물품 거래</title>
+    <title>가져가요 - 중고 물품 거래</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -26,12 +26,13 @@
             <div class="settings-section">
                 <h3>배경 설정</h3>
                 <div class="bg-options">
-                    <button class="bg-btn" onclick="setBgColor('default')">기본 색상</button>
-                    <button class="bg-btn" onclick="setBgColor('gradient')">그라데이션</button>
+                    <button class="bg-btn" id="bgDefaultBtn" onclick="setBgColor('default')">기본 색상</button>
+                    <button class="bg-btn" id="bgGradientBtn" onclick="setBgColor('gradient')">그라데이션</button>
                 </div>
                 <div class="file-upload">
                     <label for="bgImage">배경 사진 업로드:</label>
                     <input type="file" id="bgImage" accept="image/*" onchange="uploadBgImage(event)">
+                    <small id="bgImageInfo" style="color: #666; font-size: 0.85rem; margin-top: 4px;">현재 배경: 기본 색상</small>
                 </div>
             </div>
 
@@ -42,7 +43,7 @@
     <header class="header">
         <div class="header-container">
             <div class="logo">
-                <h1>🥕 당근마켓</h1>
+                <h1>🎯 가져가요</h1>
             </div>
 
             <div class="header-center">
