@@ -414,6 +414,14 @@ function closeProductModal() {
     document.getElementById('productPrice').value = '';
     document.getElementById('productStatus').value = '';
     document.getElementById('productImage').value = '';
+    
+    // 파일명 표시 초기화 추가
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    if (fileNameDisplay) {
+        fileNameDisplay.textContent = '선택된 사진 없음';
+        fileNameDisplay.style.color = '#666666';
+        fileNameDisplay.style.fontWeight = 'normal';
+    }
 }
 
 function openProductDetail(productId) {
