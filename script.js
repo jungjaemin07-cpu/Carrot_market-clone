@@ -263,43 +263,57 @@ function setTheme(themeName) {
 
     // 배경 모드 다시 적용
     if (currentBgMode === 'default') {
-        applyDefaultBg();
+        setBgColor('default');
     } else if (currentBgMode === 'gradient') {
-        applyGradientBg();
+        setBgColor('gradient');
     }
 }
 
-function applyDefaultBg() {
-    document.body.classList.remove('with-image');
-    document.body.style.background = 'var(--bg-gradient)';
-    document.body.style.backgroundImage = 'none';
-    currentBgMode = 'default';
+function triggerImageUpload() {
+    const fileInput = document.getElementById('bgImage');
+    fileInput.click();
 }
 
-function applyGradientBg() {
-    document.body.classList.remove('with-image');
-    const root = document.documentElement;
-    root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #f6d365 0%, #fda085 50%, #f6d365 100%)');
-    document.body.style.background = 'var(--bg-gradient)';
-    document.body.style.backgroundImage = 'none';
-    currentBgMode = 'gradient';
+function setBgSelectionState(mode) {
+    document.querySelectorAll('.bg-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.bg === mode);
+    });
+
+    const infoEl = document.getElementById('bgImageInfo');
+    if (infoEl) {
+        if (mode === 'default') {
+            infoEl.textContent = '현재 배경: 기본 색상';
+        } else if (mode === 'gradient') {
+            infoEl.textContent = '현재 배경: 그라데이션';
+        } else if (mode === 'image') {
+            infoEl.textContent = '현재 배경: 사진';
+        }
+    }
 }
 
 function setBgColor(mode) {
-    updateBgButtons();
+    currentBgMode = mode;
+
+    document.body.classList.remove('with-image');
+    document.body.style.backgroundImage = '';
+    document.body.style.backgroundSize = '';
+    document.body.style.backgroundPosition = '';
+    document.body.style.backgroundRepeat = '';
+    document.body.style.backgroundAttachment = '';
 
     if (mode === 'gradient') {
-        applyGradientBg();
-        document.getElementById('bgGradientBtn').classList.add('active');
-        updateBgInfo('그라데이션');
+        document.body.style.background = 'linear-gradient(135deg, #f6d365 0%, #fda085 50%, #f6d365 100%)';
+        setBgSelectionState('gradient');
+        localStorage.setItem('bgMode', 'gradient');
+        localStorage.removeItem('bgImage');
     } else {
-        applyDefaultBg();
-        document.getElementById('bgDefaultBtn').classList.add('active');
-        updateBgInfo('기본 색상');
+        const root = document.documentElement;
+        const bgGradient = getComputedStyle(root).getPropertyValue('--bg-gradient');
+        document.body.style.background = bgGradient;
+        setBgSelectionState('default');
+        localStorage.setItem('bgMode', 'default');
+        localStorage.removeItem('bgImage');
     }
-
-    localStorage.setItem('bgMode', mode);
-    localStorage.removeItem('bgImage');
 }
 
 function uploadBgImage(event) {
@@ -308,35 +322,21 @@ function uploadBgImage(event) {
 
     const reader = new FileReader();
     reader.onload = function (e) {
+        currentBgMode = 'image';
+
         document.body.classList.add('with-image');
-        document.documentElement.style.setProperty('--bg-image', `url('${e.target.result}')`);
-        document.body.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.55), rgba(255,255,255,0.6)), url('${e.target.result}')`;
+        document.body.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.55)), url('${e.target.result}')`;
         document.body.style.backgroundSize = 'cover';
         document.body.style.backgroundPosition = 'center';
         document.body.style.backgroundRepeat = 'no-repeat';
         document.body.style.backgroundAttachment = 'fixed';
 
-        updateBgButtons();
-        updateBgInfo('사진');
-        currentBgMode = 'image';
-
+        setBgSelectionState('image');
         localStorage.setItem('bgImage', e.target.result);
-        localStorage.removeItem('bgMode');
+        localStorage.setItem('bgMode', 'image');
     };
 
     reader.readAsDataURL(file);
-}
-
-function updateBgButtons() {
-    document.getElementById('bgDefaultBtn').classList.remove('active');
-    document.getElementById('bgGradientBtn').classList.remove('active');
-}
-
-function updateBgInfo(text) {
-    const info = document.getElementById('bgImageInfo');
-    if (info) {
-        info.textContent = '현재 배경: ' + text;
-    }
 }
 
 // ===== 모달 제어 =====
@@ -642,24 +642,27 @@ function loadSavedSettings() {
     // 배경 이미지 복원
     const savedBgImage = localStorage.getItem('bgImage');
     if (savedBgImage) {
-        document.body.classList.add('with-image');
-        document.body.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.55), rgba(255,255,255,0.6)), url('${savedBgImage}')`;
-        document.body.style.backgroundSize = 'cover';
-        document.body.style.backgroundPosition = 'center';
-        document.body.style.backgroundRepeat = 'no-repeat';
-        document.body.style.backgroundAttachment = 'fixed';
-        currentBgMode = 'image';
-        updateBgInfo('사진');
+        const img = new Image();
+        img.src = savedBgImage;
+        img.onload = () => {
+            document.body.classList.add('with-image');
+            document.body.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.55)), url('${savedBgImage}')`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundRepeat = 'no-repeat';
+            document.body.style.backgroundAttachment = 'fixed';
+            setBgSelectionState('image');
+            currentBgMode = 'image';
+        };
+        return;
+    }
+
+    // 배경 모드 복원
+    const savedBgMode = localStorage.getItem('bgMode');
+    if (savedBgMode === 'gradient') {
+        setBgColor('gradient');
     } else {
-        // 배경 모드 복원
-        const savedBgMode = localStorage.getItem('bgMode');
-        if (savedBgMode === 'gradient') {
-            applyGradientBg();
-            updateBgInfo('그라데이션');
-        } else {
-            applyDefaultBg();
-            updateBgInfo('기본 색상');
-        }
+        setBgColor('default');
     }
 }
 
