@@ -302,7 +302,13 @@ function setBgColor(mode) {
     document.body.style.backgroundAttachment = '';
 
     if (mode === 'gradient') {
-        document.body.style.background = 'linear-gradient(135deg, #f6d365 0%, #fda085 50%, #f6d365 100%)';
+        if (selectedTheme === 'minimal') {
+            document.body.style.background = 'linear-gradient(135deg, #f7f7f7 0%, #808080 50%, #f7f7f7 100%)';
+        } else if (selectedTheme === 'modern') {
+            document.body.style.background = 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 50%, #a1c4fd 100%)';
+        } else {
+            document.body.style.background = 'linear-gradient(135deg, #f6d365 0%, #fda085 50%, #f6d365 100%)';
+        }
         setBgSelectionState('gradient');
         localStorage.setItem('bgMode', 'gradient');
         localStorage.removeItem('bgImage');
