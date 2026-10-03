@@ -261,12 +261,8 @@ function setTheme(themeName) {
         root.style.setProperty('--accent', '#ffb15e');
     }
 
-    // 배경 모드 다시 적용
-    if (currentBgMode === 'default') {
-        setBgColor('default');
-    } else if (currentBgMode === 'gradient') {
-        setBgColor('gradient');
-    }
+    // 현재 배경 모드에 맞게 적용만 재실행 (기존 설정을 덮어쓰지 않음)
+    applyBgMode(currentBgMode);
 }
 
 function triggerImageUpload() {
@@ -293,7 +289,16 @@ function setBgSelectionState(mode) {
 
 function setBgColor(mode) {
     currentBgMode = mode;
+    localStorage.setItem('bgMode', mode);
 
+    if (mode !== 'image') {
+        localStorage.removeItem('bgImage');
+    }
+
+    applyBgMode(mode);
+}
+
+function applyBgMode(mode) {
     document.body.classList.remove('with-image');
     document.body.style.backgroundImage = '';
     document.body.style.backgroundSize = '';
@@ -303,22 +308,32 @@ function setBgColor(mode) {
 
     if (mode === 'gradient') {
         if (selectedTheme === 'minimal') {
-            document.body.style.background = 'linear-gradient(135deg, #f7f7f7 0%, #808080 50%, #f7f7f7 100%)';
+            document.body.style.background = 'linear-gradient(135deg, #f7f7f7 0%, #ababab 50%, #f7f7f7 100%)';
         } else if (selectedTheme === 'modern') {
             document.body.style.background = 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 50%, #a1c4fd 100%)';
         } else {
             document.body.style.background = 'linear-gradient(135deg, #f6d365 0%, #fda085 50%, #f6d365 100%)';
         }
         setBgSelectionState('gradient');
-        localStorage.setItem('bgMode', 'gradient');
-        localStorage.removeItem('bgImage');
+    } else if (mode === 'image') {
+        const savedBgImage = localStorage.getItem('bgImage');
+        if (savedBgImage) {
+            document.body.classList.add('with-image');
+            document.body.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.55)), url('${savedBgImage}')`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundRepeat = 'no-repeat';
+            document.body.style.backgroundAttachment = 'fixed';
+            setBgSelectionState('image');
+        } else {
+            // 사진 데이터가 없으면 기본으로 전환
+            setBgColor('default');
+        }
     } else {
         const root = document.documentElement;
         const bgGradient = getComputedStyle(root).getPropertyValue('--bg-gradient');
         document.body.style.background = bgGradient;
         setBgSelectionState('default');
-        localStorage.setItem('bgMode', 'default');
-        localStorage.removeItem('bgImage');
     }
 }
 
@@ -328,18 +343,13 @@ function uploadBgImage(event) {
 
     const reader = new FileReader();
     reader.onload = function (e) {
+        const imageData = e.target.result;
         currentBgMode = 'image';
-
-        document.body.classList.add('with-image');
-        document.body.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.55)), url('${e.target.result}')`;
-        document.body.style.backgroundSize = 'cover';
-        document.body.style.backgroundPosition = 'center';
-        document.body.style.backgroundRepeat = 'no-repeat';
-        document.body.style.backgroundAttachment = 'fixed';
-
-        setBgSelectionState('image');
-        localStorage.setItem('bgImage', e.target.result);
+        
+        localStorage.setItem('bgImage', imageData);
         localStorage.setItem('bgMode', 'image');
+
+        applyBgMode('image');
     };
 
     reader.readAsDataURL(file);
@@ -675,45 +685,56 @@ window.addEventListener('click', (event) => {
 });
 
 // ===== 로컬스토리지에서 복원 =====
+// ===== 로컬스토리지에서 복원 =====
 function loadSavedSettings() {
-    // 1. 사용자 로그인 상태 복원
+    // 1. 저장된 사용자 복원
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         currentUser = savedUser;
         updateUserDisplay();
     }
 
-    // 2. 테마 복원
-    const savedTheme = localStorage.getItem('selectedTheme');
-    if (savedTheme) {
-        setTheme(savedTheme);
-    }
-
-    // 3. 위치 복원
+    // 2. 저장된 위치 복원
     const savedLocation = localStorage.getItem('currentLocation');
     if (savedLocation) {
         currentLocation = savedLocation;
         currentLocationEl.textContent = savedLocation;
     }
 
-    // 4. 배경 설정 복원 (return으로 인한 코드 중단 차단)
-    const savedBgMode = localStorage.getItem('bgMode');
-    const savedBgImage = localStorage.getItem('bgImage');
-
-    if (savedBgMode === 'image' && savedBgImage) {
-        document.body.classList.add('with-image');
-        document.body.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.55)), url('${savedBgImage}')`;
-        document.body.style.backgroundSize = 'cover';
-        document.body.style.backgroundPosition = 'center';
-        document.body.style.backgroundRepeat = 'no-repeat';
-        document.body.style.backgroundAttachment = 'fixed';
-        setBgSelectionState('image');
-        currentBgMode = 'image';
-    } else if (savedBgMode === 'gradient') {
-        setBgColor('gradient');
-    } else {
-        setBgColor('default');
+    // 3. 저장된 테마 복원 (테마 색상 변수 설정)
+    const savedTheme = localStorage.getItem('selectedTheme');
+    if (savedTheme) {
+        selectedTheme = savedTheme;
+        // setTheme 대신 색상 설정 및 버튼 활성화만 적용
+        document.querySelectorAll('.theme-btn').forEach((button) => {
+            button.classList.toggle('active', button.dataset.theme === savedTheme);
+        });
+        const root = document.documentElement;
+        if (savedTheme === 'minimal') {
+            root.style.setProperty('--bg-color', '#f9f9f9');
+            root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #f7f7f7 0%, #ebe8e4 100%)');
+            root.style.setProperty('--primary', '#2d2d2d');
+            root.style.setProperty('--primary-dark', '#111111');
+            root.style.setProperty('--accent', '#d9d9d9');
+        } else if (savedTheme === 'modern') {
+            root.style.setProperty('--bg-color', '#f3f6ff');
+            root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #edf3ff 0%, #f5f1ff 100%)');
+            root.style.setProperty('--primary', '#4a67ff');
+            root.style.setProperty('--primary-dark', '#243ad8');
+            root.style.setProperty('--accent', '#7db1ff');
+        } else {
+            root.style.setProperty('--bg-color', '#fffaf3');
+            root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #fff7ef 0%, #ffe3d6 100%)');
+            root.style.setProperty('--primary', '#ff7a00');
+            root.style.setProperty('--primary-dark', '#e86800');
+            root.style.setProperty('--accent', '#ffb15e');
+        }
     }
+
+    // 4. 저장된 배경 모드 복원
+    const savedBgMode = localStorage.getItem('bgMode') || 'default';
+    currentBgMode = savedBgMode;
+    applyBgMode(savedBgMode);
 }
 
 // ===== 엔터 키 처리 =====
