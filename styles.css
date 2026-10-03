@@ -477,7 +477,7 @@ button:active {
 .modal-content {
     background: #fff;
     border-radius: 24px;
-    width: min(100%, 540px);
+    width: min(100%, 800px);
     padding: 28px;
     box-shadow: 0 25px 50px rgba(0,0,0,0.15);
     position: relative;
@@ -713,8 +713,8 @@ textarea {
 .detail-image {
     flex: 0 0 280px;
     position: sticky;
-    top: 50%;
-    transform: translateY(-50%);
+    bottom: 50%;
+    transform: translateY(4%);
 }
 
 .detail-image img {
