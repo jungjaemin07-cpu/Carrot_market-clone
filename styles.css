@@ -524,108 +524,78 @@ button:active {
     color: var(--primary);
 }
 
-/* ===== 설정 모달 스타일 ===== */
+/* ===== 설정 모달 ===== */
 .settings-content {
     max-width: 520px;
 }
 
 .settings-section {
-    margin-bottom: 28px;
-    padding-bottom: 18px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
     border-bottom: 1px solid var(--line);
 }
 
 .settings-section:last-child {
     border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 .settings-section h3 {
     margin-bottom: 12px;
     font-size: 1.1rem;
     font-weight: 700;
+    color: var(--text);
 }
 
-.theme-buttons,
-.bg-options {
+.theme-buttons, .bg-options {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
-.theme-btn,
-.bg-btn {
-    flex: 1;
-    min-width: 120px;
-    height: 64px;
-    border-radius: 14px;
-    font-size: 1.05rem;
-    font-weight: 700;
+.theme-btn, .bg-btn {
     background: #f3f3f3;
-    color: #222;
-    border: 2px solid #d9d9d9;
+    border: 1.5px solid var(--line);
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    flex: 1;
+    min-width: 100px;
     transition: all 0.2s ease;
 }
 
-.theme-btn:hover,
-.bg-btn:hover {
-    background: #e8e8e8;
-    border-color: #999;
+.theme-btn:hover, .bg-btn:hover {
+    border-color: var(--primary);
+    background: #fff8f3;
 }
 
 .theme-btn.active {
-    background: linear-gradient(135deg, #4a7bff, #5ba7ff);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
     color: white;
-    border-color: #2d63ff;
-    box-shadow: 0 0 0 3px rgba(74, 123, 255, 0.15);
+    border: none;
 }
 
-.bg-btn {
-    background: #f2f2f2;
-    border: 2px solid #d9d9d9;
-    color: #1d1d1f;
-}
-
-.bg-btn.active {
-    background: #e9f0ff;
-    border-color: #2d63ff;
-    box-shadow: 0 0 0 3px rgba(74, 123, 255, 0.15);
-    color: #1d1d1f;
-}
-
-.bg-upload-row {
-    margin-top: 14px;
-    margin-bottom: 12px;
-}
-
-.file-trigger-btn {
-    width: 100%;
-    height: 48px;
-    border-radius: 12px;
-    border: 2px solid #d9d9d9;
+.file-upload {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
     background: #f7f7f7;
-    color: #1d1d1f;
-    font-size: 1rem;
+    border-radius: 12px;
+}
+
+.file-upload label {
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    color: var(--text);
 }
 
-.file-trigger-btn:hover {
-    background: #f0f0f0;
-    border-color: #999;
-}
-
-#bgImage {
-    display: none;
-}
-
-.bg-info {
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: #f6f6f6;
-    color: #555;
-    font-size: 0.92rem;
-    border: 1px solid #e5e5e5;
+.file-upload input {
+    padding: 8px;
+    background: white;
 }
 
 /* ===== 로그인/회원가입 모달 ===== */
