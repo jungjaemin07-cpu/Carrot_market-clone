@@ -968,3 +968,52 @@ textarea {
         display: none;
     }
 }
+
+/* ===== 커스텀 파일 업로드 스타일 ===== */
+.file-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 6px;
+}
+
+/* 진짜 file input은 숨김 */
+.file-input-hidden {
+    display: none !important;
+}
+
+/* 사진 선택 커스텀 버튼 */
+.custom-file-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background-color: var(--primary, #ff7a00);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.custom-file-btn:hover {
+    background-color: var(--primary-dark, #e86800);
+    transform: translateY(-1px);
+}
+
+.custom-file-btn:active {
+    transform: translateY(0);
+}
+
+/* 선택된 파일명 표시 텍스트 */
+.file-name-display {
+    font-size: 0.9rem;
+    color: #666666;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
