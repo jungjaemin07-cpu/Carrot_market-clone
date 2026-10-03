@@ -448,11 +448,19 @@ function handleLogin(event) {
         return;
     }
 
-    currentUser = email.split('@')[0];
+    // localStorage에서 가입된 사용자 목록 확인
+    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    const existingUser = users.find(u => u.email === email && u.password === password);
+
+    // 가입된 유저가 있으면 그 이름, 없으면 이메일 ID 사용
+    const displayName = existingUser ? existingUser.name : email.split('@')[0];
+
+    currentUser = displayName;
+    localStorage.setItem('currentUser', currentUser);
+    
     updateUserDisplay();
     closeLoginModal();
-    localStorage.setItem('currentUser', currentUser);
-    alert('로그인 되었습니다!');
+    alert(`${currentUser}님, 환영합니다!`);
     renderProducts();
 }
 
@@ -478,22 +486,37 @@ function handleSignup(event) {
         return;
     }
 
+    // 회원가입 정보 localStorage에 저장
+    const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    if (users.some(u => u.email === email)) {
+        alert('이미 가입된 이메일입니다.');
+        return;
+    }
+
+    users.push({ name, email, password });
+    localStorage.setItem('registeredUsers', JSON.stringify(users));
+
     currentUser = name;
+    localStorage.setItem('currentUser', currentUser);
+    
     updateUserDisplay();
     closeSignupModal();
-    localStorage.setItem('currentUser', currentUser);
     alert('회원가입이 완료되었습니다!');
     renderProducts();
 }
 
 function updateUserDisplay() {
+    const userDisplay = document.getElementById('userDisplay');
+    const loginBtn = document.getElementById('loginBtn');
+    const userName = document.getElementById('userName');
+
     if (currentUser) {
-        document.getElementById('userName').textContent = currentUser;
-        document.getElementById('userDisplay').style.display = 'inline-flex';
-        document.getElementById('loginBtn').style.display = 'none';
+        userName.textContent = currentUser;
+        userDisplay.style.display = 'inline-flex';
+        loginBtn.style.display = 'none';
     } else {
-        document.getElementById('userDisplay').style.display = 'none';
-        document.getElementById('loginBtn').style.display = 'inline-flex';
+        userDisplay.style.display = 'none';
+        loginBtn.style.display = 'inline-flex';
     }
 }
 
@@ -628,44 +651,40 @@ window.addEventListener('click', (event) => {
 
 // ===== 로컬스토리지에서 복원 =====
 function loadSavedSettings() {
-    const savedTheme = localStorage.getItem('selectedTheme');
-    if (savedTheme) {
-        setTheme(savedTheme);
-    }
-
+    // 1. 사용자 로그인 상태 복원
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         currentUser = savedUser;
         updateUserDisplay();
     }
 
+    // 2. 테마 복원
+    const savedTheme = localStorage.getItem('selectedTheme');
+    if (savedTheme) {
+        setTheme(savedTheme);
+    }
+
+    // 3. 위치 복원
     const savedLocation = localStorage.getItem('currentLocation');
     if (savedLocation) {
         currentLocation = savedLocation;
         currentLocationEl.textContent = savedLocation;
     }
 
-    // 배경 이미지 복원
-    const savedBgImage = localStorage.getItem('bgImage');
-    if (savedBgImage) {
-        const img = new Image();
-        img.src = savedBgImage;
-        img.onload = () => {
-            document.body.classList.add('with-image');
-            document.body.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.55)), url('${savedBgImage}')`;
-            document.body.style.backgroundSize = 'cover';
-            document.body.style.backgroundPosition = 'center';
-            document.body.style.backgroundRepeat = 'no-repeat';
-            document.body.style.backgroundAttachment = 'fixed';
-            setBgSelectionState('image');
-            currentBgMode = 'image';
-        };
-        return;
-    }
-
-    // 배경 모드 복원
+    // 4. 배경 설정 복원 (return으로 인한 코드 중단 차단)
     const savedBgMode = localStorage.getItem('bgMode');
-    if (savedBgMode === 'gradient') {
+    const savedBgImage = localStorage.getItem('bgImage');
+
+    if (savedBgMode === 'image' && savedBgImage) {
+        document.body.classList.add('with-image');
+        document.body.style.backgroundImage = `linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.55)), url('${savedBgImage}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundRepeat = 'no-repeat';
+        document.body.style.backgroundAttachment = 'fixed';
+        setBgSelectionState('image');
+        currentBgMode = 'image';
+    } else if (savedBgMode === 'gradient') {
         setBgColor('gradient');
     } else {
         setBgColor('default');
