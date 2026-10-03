@@ -314,7 +314,7 @@ button:active {
 /* ===== 상품 카드 ===== */
 .product-card {
     background: rgba(255,255,255,0.85);
-    border: 1.5px solid var(--line);
+    border: 2px solid var(--line);
     border-radius: 20px;
     overflow: hidden;
     box-shadow: var(--card-shadow);
