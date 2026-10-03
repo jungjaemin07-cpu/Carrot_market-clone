@@ -26,14 +26,18 @@
             <div class="settings-section">
                 <h3>배경 설정</h3>
                 <div class="bg-options">
-                    <button class="bg-btn" id="bgDefaultBtn" onclick="setBgColor('default')">기본 색상</button>
-                    <button class="bg-btn" id="bgGradientBtn" onclick="setBgColor('gradient')">그라데이션</button>
+                    <button class="bg-btn" id="bgDefaultBtn" onclick="setBgColor('default')" data-bg="default">
+                        <span class="bg-btn-label">기본 색상</span>
+                    </button>
+                    <button class="bg-btn" id="bgGradientBtn" onclick="setBgColor('gradient')" data-bg="gradient">
+                        <span class="bg-btn-label">그라데이션</span>
+                    </button>
+                    <button class="bg-btn" id="bgImageBtn" onclick="triggerImageUpload()" data-bg="image">
+                        <span class="bg-btn-label">사진</span>
+                    </button>
                 </div>
-                <div class="file-upload">
-                    <label for="bgImage">배경 사진 업로드:</label>
-                    <input type="file" id="bgImage" accept="image/*" onchange="uploadBgImage(event)">
-                    <small id="bgImageInfo" style="color: #666; font-size: 0.85rem; margin-top: 4px;">현재 배경: 기본 색상</small>
-                </div>
+                <input type="file" id="bgImage" accept="image/*" style="display: none;" onchange="uploadBgImage(event)">
+                <small id="bgImageInfo" style="color: #666; font-size: 0.85rem; margin-top: 8px; display: block;">현재 배경: 기본 색상</small>
             </div>
 
             <button class="btn-primary" onclick="closeSettings()">완료</button>
