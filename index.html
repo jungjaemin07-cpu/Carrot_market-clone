@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가져가요 - 중고 물품 거래</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Supabase JS SDK CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div id="settingsModal" class="modal">
+        <div class="modal-content settings-content">
+            <div class="modal-header">
+                <h2>설정</h2>
+                <button class="close-btn" onclick="closeSettings()">&times;</button>
+            </div>
+
+            <div class="settings-section">
+                <h3>테마 선택</h3>
+                <div class="theme-buttons">
+                    <button class="theme-btn" onclick="setTheme('minimal')" data-theme="minimal">미니멀</button>
+                    <button class="theme-btn" onclick="setTheme('modern')" data-theme="modern">모던</button>
+                    <button class="theme-btn active" onclick="setTheme('colorful')" data-theme="colorful">컬러풀</button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>배경 설정</h3>
+                <div class="bg-options">
+                    <button class="bg-btn" id="bgDefaultBtn" onclick="setBgColor('default')" data-bg="default">
+                        <span class="bg-btn-label">기본 색상</span>
+                    </button>
+                    <button class="bg-btn" id="bgGradientBtn" onclick="setBgColor('gradient')" data-bg="gradient">
+                        <span class="bg-btn-label">그라데이션</span>
+                    </button>
+                    <button class="bg-btn" id="bgImageBtn" onclick="triggerImageUpload()" data-bg="image">
+                        <span class="bg-btn-label">사진</span>
+                    </button>
+                </div>
+                <input type="file" id="bgImage" accept="image/*" style="display: none;" onchange="uploadBgImage(event)">
+                <small id="bgImageInfo" style="color: #666; font-size: 0.85rem; margin-top: 8px; display: block;">현재 배경: 기본 색상</small>
+            </div>
+
+            <button class="btn-primary" onclick="closeSettings()">완료</button>
+        </div>
+    </div>
+
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <h1>🎯 가져가요</h1>
+            </div>
+
+            <div class="header-center">
+                <button class="location-btn" onclick="openLocationModal()">
+                    📍 <span id="currentLocation">위치 설정</span>
+                </button>
+            </div>
+
+            <div class="header-right">
+                <button class="icon-btn" onclick="openSettings()" title="설정">⚙️</button>
+                <button class="icon-btn" id="loginBtn" onclick="openLoginModal()" title="로그인">👤</button>
+                <span id="userDisplay" style="display:none;" class="user-display">
+                    <span id="userName"></span>
+                    <button class="logout-btn" onclick="logout()">로그아웃</button>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="상품명, 카테고리로 검색..." onkeyup="searchProducts()">
+        <button onclick="searchProducts()" class="search-btn">🔍 검색</button>
+    </div>
+
+    <div class="filter-bar">
+        <select id="categoryFilter" onchange="filterProducts()">
+            <option value="">전체 카테고리</option>
+            <option value="electronics">전자기기</option>
+            <option value="furniture">가구</option>
+            <option value="clothing">의류</option>
+            <option value="books">책</option>
+            <option value="sports">스포츠</option>
+            <option value="etc">기타</option>
+        </select>
+
+        <select id="priceFilter" onchange="filterProducts()">
+            <option value="">가격 전체</option>
+            <option value="0-10000">0 ~ 1만원</option>
+            <option value="10000-50000">1만 ~ 5만원</option>
+            <option value="50000-100000">5만 ~ 10만원</option>
+            <option value="100000-9999999">10만원 이상</option>
+        </select>
+
+        <select id="statusFilter" onchange="filterProducts()">
+            <option value="">상태 전체</option>
+            <option value="new">새 제품</option>
+            <option value="good">상태 좋음</option>
+            <option value="normal">일반</option>
+        </select>
+
+        <button class="btn-register" onclick="openProductModal()">+ 물품 등록</button>
+    </div>
+
+    <main class="main-content">
+        <div class="products-container" id="productsContainer"></div>
+        <div class="empty-state" id="emptyState">
+            <p>등록된 상품이 없습니다.</p>
+        </div>
+    </main>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content login-content">
+            <div class="modal-header">
+                <h2>로그인</h2>
+                <button class="close-btn" onclick="closeLoginModal()">&times;</button>
+            </div>
+
+            <form onsubmit="handleLogin(event)">
+                <input type="email" id="loginEmail" placeholder="이메일" required>
+                <input type="password" id="loginPassword" placeholder="비밀번호" required>
+                <button type="submit" class="btn-primary">로그인</button>
+            </form>
+
+            <div class="login-footer">
+                <p>계정이 없으신가요? <a href="#" onclick="openSignupModal()">회원가입</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="signupModal" class="modal">
+        <div class="modal-content login-content">
+            <div class="modal-header">
+                <h2>회원가입</h2>
+                <button class="close-btn" onclick="closeSignupModal()">&times;</button>
+            </div>
+
+            <form onsubmit="handleSignup(event)">
+                <input type="text" id="signupName" placeholder="이름 / 닉네임" required>
+                <input type="email" id="signupEmail" placeholder="이메일" required>
+                <input type="password" id="signupPassword" placeholder="비밀번호 (6자 이상)" required>
+                <input type="password" id="signupPasswordConfirm" placeholder="비밀번호 확인" required>
+                <button type="submit" class="btn-primary">회원가입</button>
+            </form>
+
+            <div class="login-footer">
+                <p><a href="#" onclick="openLoginModal()">로그인</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="locationModal" class="modal">
+        <div class="modal-content location-content">
+            <div class="modal-header">
+                <h2>위치 설정</h2>
+                <button class="close-btn" onclick="closeLocationModal()">&times;</button>
+            </div>
+
+            <div class="location-options">
+                <input type="text" id="locationInput" placeholder="위치 입력 (예: 서울 강남구)" onkeyup="suggestLocation()">
+                <div id="locationSuggestions" class="suggestions"></div>
+            </div>
+
+            <button class="btn-primary" onclick="confirmLocation()">위치 설정</button>
+        </div>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content product-content">
+            <div class="modal-header">
+                <h2>중고 물품 등록</h2>
+                <button class="close-btn" onclick="closeProductModal()">&times;</button>
+            </div>
+
+            <form onsubmit="handleProductSubmit(event)">
+                <input type="text" id="productTitle" placeholder="상품명" required>
+                <textarea id="productDescription" placeholder="상품 설명" rows="4" required></textarea>
+
+                <div class="form-row">
+                    <select id="productCategory" required>
+                        <option value="">카테고리 선택</option>
+                        <option value="electronics">전자기기</option>
+                        <option value="furniture">가구</option>
+                        <option value="clothing">의류</option>
+                        <option value="books">책</option>
+                        <option value="sports">스포츠</option>
+                        <option value="etc">기타</option>
+                    </select>
+
+                    <input type="number" id="productPrice" placeholder="가격" min="0" required>
+                </div>
+
+                <div class="form-row">
+                    <select id="productStatus" required>
+                        <option value="">상태 선택</option>
+                        <option value="new">새 제품</option>
+                        <option value="good">상태 좋음</option>
+                        <option value="normal">일반</option>
+                    </select>
+
+                    <input type="file" id="productImage" accept="image/*" required>
+                </div>
+
+                <button type="submit" id="submitProductBtn" class="btn-primary">등록</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="productDetailModal" class="modal">
+        <div class="modal-content detail-content">
+            <button class="close-btn" onclick="closeProductDetail()">&times;</button>
+            <div class="detail-image">
+                <img id="detailImage" src="" alt="상품 이미지">
+            </div>
+            <div class="detail-info">
+                <h2 id="detailTitle"></h2>
+                <p class="detail-seller">판매자: <span id="detailSeller"></span></p>
+                <p class="detail-location">위치: <span id="detailLocation"></span></p>
+                <p class="detail-price" id="detailPrice"></p>
+                <p class="detail-status" id="detailStatus"></p>
+                <p class="detail-description" id="detailDescription"></p>
+                <div class="detail-actions">
+                    <button class="btn-primary">채팅 시작</button>
+                    <button class="btn-secondary" id="likeBtn">❤️ 찜하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
