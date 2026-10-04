@@ -1,3 +1,49 @@
+// 1. Supabase 클라이언트 초기화 (1단계에서 복사한 값 입력)
+const SUPABASE_URL = 'https://your-project-id.supabase.co';
+const SUPABASE_ANON_KEY = 'your-anon-public-key';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// 2. 물품 등록 함수 예시 (DB에 데이터 저장)
+async function addProduct(productData) {
+    const { data, error } = await supabase
+        .from('products') // 2단계에서 만든 테이블 이름
+        .insert([
+            { 
+                title: productData.title, 
+                price: productData.price, 
+                description: productData.description,
+                status: productData.status
+            }
+        ]);
+
+    if (error) {
+        console.error('등록 실패:', error.message);
+        alert('물품 등록에 실패했습니다.');
+    } else {
+        alert('물품이 성공적으로 등록되었습니다!');
+        loadProducts(); // 목록 새로고침
+    }
+}
+
+// 3. 물품 목록 불러오기 함수 예시 (DB에서 데이터 조회)
+async function loadProducts() {
+    const { data: products, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('조회 실패:', error.message);
+        return;
+    }
+
+    // 화면에 데이터 출력 로직 작성
+    console.log('불러온 물품 목록:', products);
+}
+
+// 페이지 로드 시 목록 불러오기
+document.addEventListener('DOMContentLoaded', loadProducts);
+
 // ===== 더미 데이터 =====
 const productData = [
     {
