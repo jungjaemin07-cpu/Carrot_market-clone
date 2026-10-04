@@ -1,6 +1,6 @@
 // 1. Supabase 클라이언트 초기화 (1단계에서 복사한 값 입력)
-const SUPABASE_URL = 'https://your-project-id.supabase.co';
-const SUPABASE_ANON_KEY = 'your-anon-public-key';
+const SUPABASE_URL = 'https://ngepqszitpuqxttktete.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nZXBxc3ppdHB1cXh0dGt0ZXRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwNjQ4MzMsImV4cCI6MjEwNjY0MDgzM30.c1jGHnHZsMMZ1E9fHZUNkLQcs-JilKKSi843SImvdBs';
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // 2. 물품 등록 함수 예시 (DB에 데이터 저장)
